@@ -7,7 +7,7 @@ import (
 	"log"
 	"math"
 
-	"github.com/souvik131/trade-snippets/requests"
+	"github.com/souvik131/kite-go-library/requests"
 )
 
 func (kiteClient *Kite) GetPositions(ctx *context.Context) error {

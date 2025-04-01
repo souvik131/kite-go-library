@@ -23,9 +23,9 @@ import (
 	"github.com/klauspost/compress/zstd"
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
-	"github.com/souvik131/trade-snippets/kite"
-	"github.com/souvik131/trade-snippets/notifications"
-	"github.com/souvik131/trade-snippets/storage"
+	"github.com/souvik131/kite-go-library/kite"
+	"github.com/souvik131/kite-go-library/notifications"
+	"github.com/souvik131/kite-go-library/storage"
 	"google.golang.org/protobuf/proto"
 )
 

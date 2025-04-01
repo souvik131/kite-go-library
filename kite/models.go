@@ -4,7 +4,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/souvik131/trade-snippets/ws"
+	"github.com/souvik131/kite-go-library/ws"
 )
 
 type Instruments []*Instrument

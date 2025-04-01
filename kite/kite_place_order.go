@@ -10,7 +10,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/souvik131/trade-snippets/requests"
+	"github.com/souvik131/kite-go-library/requests"
 )
 
 func (kite *Kite) PlaceOrder(ctx *context.Context, order *Order) (string, error) {

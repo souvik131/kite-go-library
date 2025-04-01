@@ -14,7 +14,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/pquerna/otp/hotp"
-	"github.com/souvik131/trade-snippets/requests"
+	"github.com/souvik131/kite-go-library/requests"
 )
 
 var webInputs = []string{"Id", "Password", "Totp"}

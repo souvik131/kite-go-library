@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 
-	"github.com/souvik131/trade-snippets/requests"
+	"github.com/souvik131/kite-go-library/requests"
 )
 
 func (kite *Kite) GetMargin(ctx *context.Context) (*Margin, error) {

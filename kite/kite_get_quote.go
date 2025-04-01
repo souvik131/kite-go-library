@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"net/url"
 
-	"github.com/souvik131/trade-snippets/requests"
+	"github.com/souvik131/kite-go-library/requests"
 )
 
 func (kite *Kite) GetQuote(ctx *context.Context, exchange string, tradingSymbol string) (*Quote, error) {

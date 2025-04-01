@@ -1,4 +1,4 @@
-module github.com/souvik131/trade-snippets
+module github.com/souvik131/kite-go-library
 
 go 1.20
 

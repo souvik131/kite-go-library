@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/souvik131/trade-snippets/notifications"
-	"github.com/souvik131/trade-snippets/ws"
+	"github.com/souvik131/kite-go-library/notifications"
+	"github.com/souvik131/kite-go-library/ws"
 )
 
 var (

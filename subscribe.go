@@ -10,7 +10,7 @@ import (
 
 	"github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
-	"github.com/souvik131/trade-snippets/storage"
+	"github.com/souvik131/kite-go-library/storage"
 	"golang.org/x/exp/rand"
 )
 
