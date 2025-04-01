@@ -1,0 +1,6 @@
+*.zstd
+.env
+.DS_Store
+build
+nats/data
+read.sh

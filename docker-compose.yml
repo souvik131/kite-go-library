@@ -1,0 +1,29 @@
+version: "3"
+services:
+  nats:
+    image: nats:2.10.18
+    ports:
+      - 127.0.0.1:4222:4222
+      - 127.0.0.1:8222:8222
+      - 127.0.0.1:8090:8090
+    volumes:
+      - ./nats/data:/data
+      - ./nats/config:/etc/nats
+    command:
+      - "--js"
+      - "-c"
+      - "/etc/nats/nats.conf"
+    restart: always
+
+  fetch:
+    build:
+      context: ./
+    restart: always
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - ./binary:/usr/src/app/binary
+    env_file:
+      - .env
+    depends_on:
+      - nats
