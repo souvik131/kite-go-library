@@ -13,29 +13,6 @@ A comprehensive Go library for Zerodha Kite trading platform integration with su
 
 ## Environment Configuration
 
-### Setup Environment Variables
-
-Copy the example environment file and configure your credentials:
-
-```bash
-cp .env_example .env
-```
-
-Edit `.env` with your Kite credentials:
-
-```env
-TA_ID=your_user_id                    # Kite Username
-TA_PASSWORD=your_password             # Kite Password
-TA_TOTP=your_totpkey                  # Kite TOTP Secret (not OTP)
-TA_APIKEY=your_api_key                # API key from kite.trade
-TA_APISECRET=your_api_secret          # API secret from kite.trade
-TA_PATH=http://127.0.0.1:80/kite      # API path for web mode
-TA_PORT=80                            # Port for web server
-TA_LOGINTYPE=WEB                      # Login type: WEB or API
-TA_FEED_TIMEOUT=2                     # Data feed rotation interval (seconds)
-TA_FEED_INSTRUMENT_COUNT=3000         # Instruments per WebSocket batch
-```
-
 ### Configuration Options
 
 | Variable                   | Description                      | Default | Required |
@@ -50,16 +27,6 @@ TA_FEED_INSTRUMENT_COUNT=3000         # Instruments per WebSocket batch
 | `TA_PORT`                  | Web server port                  | 80      | Yes      |
 | `TA_FEED_TIMEOUT`          | Data rotation interval (seconds) | 2       | Yes      |
 | `TA_FEED_INSTRUMENT_COUNT` | Instruments per batch            | 3000    | Yes      |
-
-### Trading Hours
-
-The system respects market trading hours:
-
-- **Equity Markets (NSE/BSE)**: 9:15 AM - 3:30 PM
-- **F&O Markets (NFO)**: 9:15 AM - 3:30 PM
-- **Commodity Markets (MCX)**: 9:00 AM - 11:30 PM
-
-Data collection automatically starts/stops based on these timings.
 
 ## MCP Server Setup and Integration
 
@@ -151,6 +118,39 @@ The MCP server provides the following tools (replace `{user_id}` with your actua
 "Get historical data for BANKNIFTY for the last 5 days"
 "Show me the option chain for NIFTY"
 ```
+
+### Setup Environment Variables
+
+Copy the example environment file and configure your credentials:
+
+```bash
+cp .env_example .env
+```
+
+Edit `.env` with your Kite credentials:
+
+```env
+TA_ID=your_user_id                    # Kite Username
+TA_PASSWORD=your_password             # Kite Password
+TA_TOTP=your_totpkey                  # Kite TOTP Secret (not OTP)
+TA_APIKEY=your_api_key                # API key from kite.trade
+TA_APISECRET=your_api_secret          # API secret from kite.trade
+TA_PATH=http://127.0.0.1:80/kite      # API path for web mode
+TA_PORT=80                            # Port for web server
+TA_LOGINTYPE=WEB                      # Login type: WEB or API
+TA_FEED_TIMEOUT=2                     # Data feed rotation interval (seconds)
+TA_FEED_INSTRUMENT_COUNT=3000         # Instruments per WebSocket batch
+```
+
+### Trading Hours
+
+The system respects market trading hours:
+
+- **Equity Markets (NSE/BSE)**: 9:15 AM - 3:30 PM
+- **F&O Markets (NFO)**: 9:15 AM - 3:30 PM
+- **Commodity Markets (MCX)**: 9:00 AM - 11:30 PM
+
+Data collection automatically starts/stops based on these timings.
 
 ## Binary Data Storage
 
