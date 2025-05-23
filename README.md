@@ -30,18 +30,13 @@ A comprehensive Go library for Zerodha Kite trading platform integration with su
 
 ## MCP Server Setup and Integration
 
-### Building the MCP Server
+### Running the MCP Server
 
-```bash
-# Build the project
-go build -o kite-mcp-server
+1. **Install Claude Desktop** from [claude.ai](https://claude.ai/download)
 
-# Run as MCP server
-./kite-mcp-server
+2. **Download the MCP Server**: Get the `kite-mcp-server` executable from the [releases page](https://github.com/souvik131/kite-go-library/releases) or build from source
 
-# Or run with environment variables
-TA_LOGINTYPE=API ./kite-mcp-server
-```
+3. **Configure Claude Desktop**: Go to Settings → Developer → Edit Config and add the configuration below
 
 ### Claude Desktop Configuration
 
@@ -51,15 +46,15 @@ Add to your `claude_desktop_config.json`:
 {
   "mcpServers": {
     "kite-server": {
-      "command": "./kite-mcp-server",
+      "command": "<your_folder_location>/kite-mcp-server",
       "args": [],
       "env": {
-        "TA_ID": "your_user_id",
-        "TA_PASSWORD": "your_password",
-        "TA_TOTP": "your_totpkey",
-        "TA_API_KEY": "your_api_key",
-        "TA_API_SECRET": "your_api_secret",
-        "TA_LOGINTYPE": "API",
+        "TA_ID": "<your_user_id>",
+        "TA_PASSWORD": "<your_password>",
+        "TA_TOTP": "<your_totpkey>",
+        "TA_API_KEY": "<your_api_key_optional>",
+        "TA_API_SECRET": "<your_api_secret_optional>",
+        "TA_LOGINTYPE": "WEB",
         "TA_PATH": "http://127.0.0.1:80/kite",
         "TA_PORT": "80",
         "TA_FEED_TIMEOUT": "2",
@@ -70,7 +65,11 @@ Add to your `claude_desktop_config.json`:
 }
 ```
 
-**Restart Claude Desktop** to load the MCP server.
+4. **Restart Claude Desktop** completely to load the MCP server
+
+5. **Verify Connection**: Look for the 🔌 icon in Claude indicating successful MCP connection
+
+You can now interact with your Kite account using natural language commands in Claude!
 
 ### Available MCP Tools
 
