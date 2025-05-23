@@ -6,7 +6,7 @@
       "env": {
         "TA_ID": "your_user_id",
         "TA_PASSWORD": "your_password",
-        "TA_TOTP": "your_pin",
+        "TA_TOTP": "your_totpkey",
         "TA_API_KEY": "your_api_key",
         "TA_API_SECRET": "your_api_secret",
         "TA_LOGINTYPE": "WEB/API",
