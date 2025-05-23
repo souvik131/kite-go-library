@@ -5,40 +5,35 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
-	"log"
 	"math"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
-	"github.com/souvik131/kite-go-library/notifications"
-	"github.com/souvik131/kite-go-library/ws"
-)
+	log "github.com/sirupsen/logrus"
 
-var (
-	t = &notifications.Telegram{}
+	"github.com/souvik131/kite-go-library/ws"
 )
 
 const HeartBeatIntervalInSeconds float64 = 20
 const BufferSize int = 1000
 
-func GetWebsocketClientForWeb(ctx *context.Context, id string, token string, receiveBinaryTickers bool) (*TickerClient, error) {
+func GetWebsocketClientForWeb(ctx *context.Context, id string, token string /*, receiveBinaryTickers bool*/) (*TickerClient, error) {
 
 	token = strings.Replace(token, "enctoken ", "", 1)
-	return getWebsocketClient(ctx, fmt.Sprintf("user_id=%v&access_token=%v&api_key=kitefront", id, token), receiveBinaryTickers)
+	return getWebsocketClient(ctx, fmt.Sprintf("user_id=%v&access_token=%v&api_key=kitefront", id, token) /*, receiveBinaryTickers*/)
 }
 
-func GetWebsocketClientForAPI(ctx *context.Context, token string, receiveBinaryTickers bool) (*TickerClient, error) {
+func GetWebsocketClientForAPI(ctx *context.Context, token string /*, receiveBinaryTickers bool*/) (*TickerClient, error) {
 	token = strings.Replace(token, "token ", "", 1)
 	apiKey := strings.Split(token, ":")[0]
 	accessToken := strings.Replace(token, apiKey+":", "", 1)
-	return getWebsocketClient(ctx, fmt.Sprintf("access_token=%v&api_key=%v", accessToken, apiKey), receiveBinaryTickers)
+	return getWebsocketClient(ctx, fmt.Sprintf("access_token=%v&api_key=%v", accessToken, apiKey) /*, receiveBinaryTickers*/)
 }
 
-func getWebsocketClient(ctx *context.Context, rawQuery string, receiveBinaryTickers bool) (*TickerClient, error) {
-	log.Printf("websocket : start")
-	go t.Send("websocket : start")
+func getWebsocketClient(ctx *context.Context, rawQuery string /*, receiveBinaryTickers bool*/) (*TickerClient, error) {
+	log.Infof("websocket : start")
 	k := &TickerClient{
 		Client: &ws.Client{
 			URL: &url.URL{
@@ -56,7 +51,7 @@ func getWebsocketClient(ctx *context.Context, rawQuery string, receiveBinaryTick
 		QuoteTokens:                map[uint32]bool{},
 		LtpTokens:                  map[uint32]bool{},
 		HeartBeatIntervalInSeconds: HeartBeatIntervalInSeconds,
-		ReceiveBinaryTickers:       receiveBinaryTickers,
+		// ReceiveBinaryTickers:       receiveBinaryTickers,
 	}
 
 	k.LastUpdatedTime.Store(time.Now().Unix())
@@ -84,8 +79,7 @@ func (k *TickerClient) Connect(ctx *context.Context) error {
 		}
 		return fmt.Errorf("%v", respBody)
 	}
-	log.Printf("websocket : client ready")
-	go t.Send("websocket : client ready")
+	log.Infof("websocket : client ready")
 	err = k.Client.Read(ctx)
 	if err != nil {
 		return err
@@ -96,8 +90,7 @@ func (k *TickerClient) Connect(ctx *context.Context) error {
 func (k *TickerClient) Serve(ctx *context.Context) {
 
 	<-time.After(time.Millisecond)
-	log.Println("websocket : serve")
-	go t.Send("websocket : serve")
+	log.Info("websocket : serve")
 
 	ticker := time.NewTicker(time.Second)
 
@@ -110,7 +103,9 @@ func (k *TickerClient) Serve(ctx *context.Context) {
 		case reader := <-k.Client.ReaderChannel:
 			k.LastUpdatedTime.Store(time.Now().Unix())
 			if reader.Error != nil {
-				log.Panic(reader.Error)
+				log.Error("websocket reader error: ", reader.Error)
+				k.ErrorChan <- reader.Error
+				return
 			}
 			switch reader.MessageType {
 			case ws.TEXT:
@@ -119,7 +114,7 @@ func (k *TickerClient) Serve(ctx *context.Context) {
 				go k.onBinaryMessage(reader)
 
 			default:
-				log.Printf("recv: %v %v", reader.MessageType, reader.Message)
+				log.Infof("recv: %v %v", reader.MessageType, reader.Message)
 			}
 		}
 	}
@@ -132,8 +127,7 @@ func (k *TickerClient) Close(ctx *context.Context) error {
 func (k *TickerClient) Reconnect(ctx *context.Context) error {
 	err := k.Close(ctx)
 	if err != nil {
-		log.Printf("websocket : attempted to close, got response -> %v", err)
-		go t.Send("websocket : reconnecting")
+		log.Infof("websocket : attempted to close, got response -> %v", err)
 	}
 	err = k.Connect(ctx)
 	if err != nil {
@@ -146,9 +140,9 @@ func (k *TickerClient) Reconnect(ctx *context.Context) error {
 
 func (k *TickerClient) Resubscribe(ctx *context.Context) error {
 
-	keys := make([]string, 0, len(k.LtpTokens))
+	keys := make([]uint32, 0, len(k.LtpTokens))
 	for k2 := range k.LtpTokens {
-		keys = append(keys, TokenSymbolMap[k2])
+		keys = append(keys, k2)
 	}
 	for len(keys) > 0 {
 		minLen := int(math.Min(float64(BufferSize), float64(len(keys))))
@@ -159,9 +153,9 @@ func (k *TickerClient) Resubscribe(ctx *context.Context) error {
 		}
 	}
 
-	keys = make([]string, 0, len(k.QuoteTokens))
+	keys = make([]uint32, 0, len(k.QuoteTokens))
 	for k2 := range k.QuoteTokens {
-		keys = append(keys, TokenSymbolMap[k2])
+		keys = append(keys, k2)
 	}
 
 	for len(keys) > 0 {
@@ -173,9 +167,9 @@ func (k *TickerClient) Resubscribe(ctx *context.Context) error {
 		}
 	}
 
-	keys = make([]string, 0, len(k.FullTokens))
+	keys = make([]uint32, 0, len(k.FullTokens))
 	for k2 := range k.FullTokens {
-		keys = append(keys, TokenSymbolMap[k2])
+		keys = append(keys, k2)
 	}
 
 	for len(keys) > 0 {
@@ -190,7 +184,7 @@ func (k *TickerClient) Resubscribe(ctx *context.Context) error {
 	return nil
 
 }
-func (k *TickerClient) SubscribeLTP(ctx *context.Context, tokens []string) error {
+func (k *TickerClient) SubscribeLTP(ctx *context.Context, tokens []uint32) error {
 	r := &Request{
 		Message: "mode",
 		Tokens: []interface{}{
@@ -199,18 +193,21 @@ func (k *TickerClient) SubscribeLTP(ctx *context.Context, tokens []string) error
 	}
 	iTokens := []uint32{}
 	for _, t := range tokens {
-		iTokens = append(iTokens, SymbolTokenMap[t])
+		iTokens = append(iTokens, t)
 	}
 	r.Tokens = append(r.Tokens, iTokens)
+
+	k.TokensMutex.Lock()
 	for _, t := range tokens {
-		tInt := SymbolTokenMap[t]
-		k.FullTokens[tInt] = true
+		tInt := t
+		k.LtpTokens[tInt] = true
 	}
+	k.TokensMutex.Unlock()
 
 	return k.writeTextRequest(ctx, r)
 }
 
-func (k *TickerClient) SubscribeFull(ctx *context.Context, tokens []string) error {
+func (k *TickerClient) SubscribeFull(ctx *context.Context, tokens []uint32) error {
 	r := &Request{
 		Message: "mode",
 		Tokens: []interface{}{
@@ -220,40 +217,51 @@ func (k *TickerClient) SubscribeFull(ctx *context.Context, tokens []string) erro
 
 	iTokens := []uint32{}
 	for _, t := range tokens {
-		iTokens = append(iTokens, SymbolTokenMap[t])
+		iTokens = append(iTokens, t)
 	}
 	r.Tokens = append(r.Tokens, iTokens)
+
+	k.TokensMutex.Lock()
 	for _, t := range tokens {
-		tInt := SymbolTokenMap[t]
+		tInt := t
 		k.FullTokens[tInt] = true
 	}
+	k.TokensMutex.Unlock()
+
 	return k.writeTextRequest(ctx, r)
 }
 
-func (k *TickerClient) SubscribeQuote(ctx *context.Context, tokens []string) error {
+func (k *TickerClient) SubscribeQuote(ctx *context.Context, tokens []uint32) error {
 	r := &Request{
 		Message: "subscribe",
 		Tokens:  []interface{}{},
 	}
+
+	k.TokensMutex.Lock()
 	for _, t := range tokens {
-		tInt := SymbolTokenMap[t]
+		tInt := t
 		r.Tokens = append(r.Tokens, tInt)
 		k.QuoteTokens[tInt] = true
 	}
+	k.TokensMutex.Unlock()
+
 	return k.writeTextRequest(ctx, r)
 }
 
-func (k *TickerClient) Unsubscribe(ctx *context.Context, tokens []string) error {
+func (k *TickerClient) Unsubscribe(ctx *context.Context, tokens []uint32) error {
 	r := &Request{
 		Message: "unsubscribe",
 		Tokens:  []interface{}{},
 	}
+
+	k.TokensMutex.Lock()
 	for _, t := range tokens {
-		r.Tokens = append(r.Tokens, SymbolTokenMap[t])
-		delete(k.QuoteTokens, SymbolTokenMap[t])
-		delete(k.LtpTokens, SymbolTokenMap[t])
-		delete(k.QuoteTokens, SymbolTokenMap[t])
+		r.Tokens = append(r.Tokens, t)
+		delete(k.QuoteTokens, t)
+		delete(k.LtpTokens, t)
+		delete(k.FullTokens, t)
 	}
+	k.TokensMutex.Unlock()
 
 	return k.writeTextRequest(ctx, r)
 }
@@ -291,11 +299,11 @@ func (k *TickerClient) onBinaryMessage(reader *ws.Reader) {
 	message := reader.Message
 	numOfPackets := binary.BigEndian.Uint16(message[0:2])
 	if numOfPackets > 0 {
-		if k.ReceiveBinaryTickers {
-			k.BinaryTickerChan <- reader.Message
-		} else {
-			k.ParseBinary(message)
-		}
+		// if k.ReceiveBinaryTickers {
+		k.BinaryTickerChan <- reader.Message
+		// } else {
+		k.ParseBinary(message)
+		// }
 	}
 
 }
@@ -359,7 +367,7 @@ func (k *TickerClient) ParseBinary(message []byte) {
 			ticker.OILow = values[14]
 			ticker.ExchangeTimestamp = time.Unix(int64(values[15]), 0)
 		default:
-			log.Println("unkown length of packet", len(values), values)
+			log.Warn("unknown length of packet: ", len(values), " values: ", values)
 		}
 
 		if len(packet) > 64 {
@@ -399,12 +407,13 @@ func (k *TickerClient) onTextMessage(reader *ws.Reader) {
 		m := &Message{}
 		err := json.Unmarshal(reader.Message, m)
 		if err != nil {
-			log.Panic(err)
+			log.Error("error parsing request: ", err)
+			k.ErrorChan <- err
+			return
 		}
 		switch m.Type {
 		case "instruments_meta":
-			log.Printf("websocket : connected")
-			t.Send("websocket : connected")
+			log.Infof("websocket : connected")
 			k.ConnectChan <- struct{}{}
 		case "error":
 			k.ErrorChan <- m.Data

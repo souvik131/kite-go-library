@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "kite-server": {
+      "command": "./kite-mcp-server",
+      "args": [],
+      "env": {
+        "TA_ID": "your_user_id",
+        "TA_PASSWORD": "your_password",
+        "TA_TOTP": "your_pin",
+        "TA_API_KEY": "your_api_key",
+        "TA_API_SECRET": "your_api_secret",
+        "TA_LOGINTYPE": "WEB/API",
+        "TA_PATH": "http://127.0.0.1:80/kite",
+        "TA_PORT": "80",
+        "TA_FEED_TIMEOUT": "2",
+        "TA_FEED_INSTRUMENT_COUNT": "3000"
+      }
+    }
+  }
+}

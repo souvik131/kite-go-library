@@ -80,9 +80,9 @@ func (kite *Kite) FetchInstruments() (Instruments, error) {
 	}
 	for _, i := range insts {
 
-		TokenSymbolMap[i.Token] = i.TradingSymbol
-		SymbolTokenMap[i.TradingSymbol] = i.Token
-		(*BrokerInstrumentTokens)[i.TradingSymbol] = i
+		TokenSymbolMap[i.Token] = i.Exchange + ":" + i.TradingSymbol
+		SymbolTokenMap[i.Exchange+":"+i.TradingSymbol] = i.Token
+		(*BrokerInstrumentTokens)[i.Exchange+":"+i.TradingSymbol] = i
 	}
 	return insts, nil
 }

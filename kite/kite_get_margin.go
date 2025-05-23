@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"log"
 
 	"github.com/souvik131/kite-go-library/requests"
 )
@@ -34,6 +35,7 @@ func (kite *Kite) GetMargin(ctx *context.Context) (*Margin, error) {
 		return nil, err
 	}
 	if code == 200 && respData.Data != nil {
+		log.Printf("%v", respData.Data)
 		return &Margin{
 			MarginUsed:  respData.Data.Equity.Utilised.Debits,
 			MarginTotal: respData.Data.Equity.Net + respData.Data.Equity.Utilised.Debits,

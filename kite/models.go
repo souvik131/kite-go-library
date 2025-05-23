@@ -1,6 +1,7 @@
 package kite
 
 import (
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -42,6 +43,7 @@ type TickerClient struct {
 	FullTokens                 map[uint32]bool
 	QuoteTokens                map[uint32]bool
 	LtpTokens                  map[uint32]bool
+	TokensMutex                sync.RWMutex
 	HeartBeatIntervalInSeconds float64
 	ReceiveBinaryTickers       bool
 }
@@ -77,11 +79,12 @@ type KiteTicker struct {
 }
 type Creds map[string]string
 type Kite struct {
-	Creds         *Creds
-	TickerClients []*TickerClient
-	TickSymbolMap map[string]KiteTicker
-	Positions     []*Position
-	Pnl           float64
+	Creds              *Creds
+	TickerClients      []*TickerClient
+	TickSymbolMap      map[string]KiteTicker
+	TickSymbolMapMutex sync.RWMutex
+	Positions          []*Position
+	Pnl                float64
 }
 
 type Margin struct {
@@ -255,6 +258,26 @@ type OrdersResponsePayload struct {
 	Message   string         `json:"message"`
 	ErrorType string         `json:"error_type"`
 	Data      []*OrderStatus `json:"data"`
+}
+type CandleResponse []*any
+
+type Candle struct {
+	Volume    uint64
+	OI        uint64
+	Open      float64
+	High      float64
+	Low       float64
+	Close     float64
+	Timestamp int64
+}
+
+type CandlesResponsePayload struct {
+	Status    string `json:"error"`
+	Message   string `json:"message"`
+	ErrorType string `json:"error_type"`
+	Data      *struct {
+		Candles []*CandleResponse `json:"candles"`
+	} `json:"data"`
 }
 
 type PositionResponsePayload struct {
