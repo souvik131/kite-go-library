@@ -43,8 +43,8 @@ TA_FEED_INSTRUMENT_COUNT=3000         # Instruments per WebSocket batch
 | `TA_ID`                    | Kite username                    | -       | Yes      |
 | `TA_PASSWORD`              | Kite password                    | -       | Yes      |
 | `TA_TOTP`                  | TOTP secret key                  | -       | Yes      |
-| `TA_APIKEY`                | Kite API key                     | -       | Yes      |
-| `TA_APISECRET`             | Kite API secret                  | -       | Yes      |
+| `TA_APIKEY`                | Kite API key                     | -       | No       |
+| `TA_APISECRET`             | Kite API secret                  | -       | No       |
 | `TA_LOGINTYPE`             | Login mode (WEB/API)             | WEB     | Yes      |
 | `TA_PATH`                  | Web server path                  | /kite   | Yes      |
 | `TA_PORT`                  | Web server port                  | 80      | Yes      |
