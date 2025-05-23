@@ -11,9 +11,9 @@ A comprehensive Go library for Zerodha Kite trading platform integration with su
 - **Web Interface**: HTTP API endpoints for web-based trading applications
 - **Multi-Exchange Support**: NSE, BSE, NFO, BFO, MCX market data and trading
 
-## Quick Start
+## Environment Configuration
 
-### 1. Configuration
+### Setup Environment Variables
 
 Copy the example environment file and configure your credentials:
 
@@ -36,13 +36,34 @@ TA_FEED_TIMEOUT=2                     # Data feed rotation interval (seconds)
 TA_FEED_INSTRUMENT_COUNT=3000         # Instruments per WebSocket batch
 ```
 
-### 2. Docker Deployment
+### Configuration Options
 
-```bash
-docker-compose up -d
-```
+| Variable                   | Description                      | Default | Required |
+| -------------------------- | -------------------------------- | ------- | -------- |
+| `TA_ID`                    | Kite username                    | -       | Yes      |
+| `TA_PASSWORD`              | Kite password                    | -       | Yes      |
+| `TA_TOTP`                  | TOTP secret key                  | -       | Yes      |
+| `TA_APIKEY`                | Kite API key                     | -       | Yes      |
+| `TA_APISECRET`             | Kite API secret                  | -       | Yes      |
+| `TA_LOGINTYPE`             | Login mode (WEB/API)             | WEB     | No       |
+| `TA_PATH`                  | Web server path                  | /kite   | No       |
+| `TA_PORT`                  | Web server port                  | 80      | No       |
+| `TA_FEED_TIMEOUT`          | Data rotation interval (seconds) | 2       | No       |
+| `TA_FEED_INSTRUMENT_COUNT` | Instruments per batch            | 3000    | No       |
 
-### 3. Direct Execution
+### Trading Hours
+
+The system respects market trading hours:
+
+- **Equity Markets (NSE/BSE)**: 9:15 AM - 3:30 PM
+- **F&O Markets (NFO)**: 9:15 AM - 3:30 PM
+- **Commodity Markets (MCX)**: 9:00 AM - 11:30 PM
+
+Data collection automatically starts/stops based on these timings.
+
+## MCP Server Setup and Integration
+
+### Building the MCP Server
 
 ```bash
 # Build the project
@@ -55,88 +76,7 @@ go build -o kite-mcp-server
 TA_LOGINTYPE=API ./kite-mcp-server
 ```
 
-## Usage Modes
-
-### 1. API Mode (`TA_LOGINTYPE=API`)
-
-Direct API integration for programmatic trading:
-
-```go
-import "github.com/souvik131/kite-go-library/kite"
-
-ctx := context.Background()
-kiteClient := &kite.Kite{}
-
-// Login
-err := kiteClient.Login(&ctx)
-
-// Place order
-order := &kite.Order{
-    Exchange: "NSE",
-    TradingSymbol: "RELIANCE",
-    Quantity: 1,
-    Price: 2500.0,
-    TransactionType: "BUY",
-    Product: "CNC",
-    OrderType: "LIMIT",
-}
-orderID, err := kiteClient.PlaceOrder(&ctx, order)
-
-// Get positions
-err = kiteClient.GetPositions(&ctx)
-
-// Get quotes
-quote, err := kiteClient.GetQuote(&ctx, "NSE", "RELIANCE")
-```
-
-### 2. Web Mode (`TA_LOGINTYPE=WEB`)
-
-HTTP server with REST API endpoints for web applications. Access trading functions via HTTP requests to configured path and port.
-
-### 3. MCP Server Mode
-
-Model Context Protocol server for Claude Desktop integration, providing AI-powered trading assistance.
-
-## Binary Data Storage
-
-The library automatically collects and stores market data in compressed binary format:
-
-### Storage Structure
-
-```
-binary/
-├── map_YYYYMMDD.proto.zstd           # Instrument mapping (token -> symbol)
-├── market_data_equity_mcx_YYYYMMDD.bin.zstd  # Market data (equity + MCX)
-```
-
-### Data Collection Features
-
-- **Real-time Collection**: Streams live market data via WebSocket
-- **Compression**: Zstandard compression for optimal storage
-- **Rotation**: Automatic instrument rotation based on `TA_FEED_TIMEOUT`
-- **Trading Hours**: Respects market timings (Equity: 9:15-15:30, MCX: 9:00-23:30)
-- **Multi-Exchange**: NSE, NFO, MCX data collection
-
-### Reading Stored Data
-
-```go
-import "github.com/souvik131/kite-go-library/engine"
-
-// Read historical data for a specific date
-engine.Read("20240115") // YYYYMMDD format
-```
-
-## MCP Integration with Claude Desktop
-
-### Setup
-
-1. **Build the MCP server**:
-
-```bash
-go build -o kite-mcp-server
-```
-
-2. **Configure Claude Desktop**:
+### Claude Desktop Configuration
 
 Add to your `claude_desktop_config.json`:
 
@@ -163,7 +103,7 @@ Add to your `claude_desktop_config.json`:
 }
 ```
 
-3. **Restart Claude Desktop** to load the MCP server.
+**Restart Claude Desktop** to load the MCP server.
 
 ### Available MCP Tools
 
@@ -212,7 +152,90 @@ The MCP server provides the following tools (replace `{user_id}` with your actua
 "Show me the option chain for NIFTY"
 ```
 
+## Binary Data Storage
+
+The library automatically collects and stores market data in compressed binary format for historical analysis and backtesting.
+
+### Storage Structure
+
+```
+binary/
+├── map_YYYYMMDD.proto.zstd           # Instrument mapping (token -> symbol)
+├── market_data_equity_mcx_YYYYMMDD.bin.zstd  # Market data (equity + MCX)
+```
+
+### Data Collection Features
+
+- **Real-time Collection**: Streams live market data via WebSocket
+- **Compression**: Zstandard compression for optimal storage efficiency
+- **Rotation**: Automatic instrument rotation based on `TA_FEED_TIMEOUT`
+- **Trading Hours**: Respects market timings for data collection
+- **Multi-Exchange**: NSE, NFO, MCX data collection
+- **Protobuf Serialization**: Efficient binary format for storage
+
+### Data Collection Process
+
+1. **Instrument Mapping**: Creates compressed protobuf mapping of all instruments
+2. **WebSocket Streaming**: Connects to Kite WebSocket for real-time data
+3. **Batch Processing**: Rotates through instruments in configurable batches
+4. **Compression**: Uses Zstandard compression for storage efficiency
+5. **Time-based Storage**: Separates data by trading sessions and dates
+
+### Reading Stored Data
+
+```go
+import "github.com/souvik131/kite-go-library/engine"
+
+// Read historical data for a specific date
+engine.Read("20240115") // YYYYMMDD format
+```
+
+### Storage Benefits
+
+- **Space Efficient**: Compressed binary storage reduces file sizes significantly
+- **Fast Access**: Protobuf serialization enables quick data retrieval
+- **Complete Market Data**: Stores full market depth, OHLC, volume, and OI data
+- **Historical Analysis**: Perfect for backtesting and strategy development
+
 ## API Reference
+
+### Usage Modes
+
+#### 1. API Mode (`TA_LOGINTYPE=API`)
+
+Direct API integration for programmatic trading:
+
+```go
+import "github.com/souvik131/kite-go-library/kite"
+
+ctx := context.Background()
+kiteClient := &kite.Kite{}
+
+// Login
+err := kiteClient.Login(&ctx)
+
+// Place order
+order := &kite.Order{
+    Exchange: "NSE",
+    TradingSymbol: "RELIANCE",
+    Quantity: 1,
+    Price: 2500.0,
+    TransactionType: "BUY",
+    Product: "CNC",
+    OrderType: "LIMIT",
+}
+orderID, err := kiteClient.PlaceOrder(&ctx, order)
+
+// Get positions
+err = kiteClient.GetPositions(&ctx)
+
+// Get quotes
+quote, err := kiteClient.GetQuote(&ctx, "NSE", "RELIANCE")
+```
+
+#### 2. Web Mode (`TA_LOGINTYPE=WEB`)
+
+HTTP server with REST API endpoints for web applications. Access trading functions via HTTP requests to configured path and port.
 
 ### Core Trading Functions
 
@@ -257,7 +280,9 @@ SubscribeQuote(ctx *context.Context, tokens []string) error
 Unsubscribe(ctx *context.Context, tokens []string) error
 ```
 
-### Order Structure
+### Data Structures
+
+#### Order Structure
 
 ```go
 type Order struct {
@@ -273,30 +298,48 @@ type Order struct {
 }
 ```
 
-## Configuration Options
+## Deployment
 
-| Variable                   | Description                      | Default | Required |
-| -------------------------- | -------------------------------- | ------- | -------- |
-| `TA_ID`                    | Kite username                    | -       | Yes      |
-| `TA_PASSWORD`              | Kite password                    | -       | Yes      |
-| `TA_TOTP`                  | TOTP secret key                  | -       | Yes      |
-| `TA_APIKEY`                | Kite API key                     | -       | Yes      |
-| `TA_APISECRET`             | Kite API secret                  | -       | Yes      |
-| `TA_LOGINTYPE`             | Login mode (WEB/API)             | WEB     | No       |
-| `TA_PATH`                  | Web server path                  | /kite   | No       |
-| `TA_PORT`                  | Web server port                  | 80      | No       |
-| `TA_FEED_TIMEOUT`          | Data rotation interval (seconds) | 2       | No       |
-| `TA_FEED_INSTRUMENT_COUNT` | Instruments per batch            | 3000    | No       |
+### Docker Deployment
 
-## Trading Hours
+```bash
+docker-compose up -d
+```
 
-The system respects market trading hours:
+### Docker Support
 
-- **Equity Markets (NSE/BSE)**: 9:15 AM - 3:30 PM
-- **F&O Markets (NFO)**: 9:15 AM - 3:30 PM
-- **Commodity Markets (MCX)**: 9:00 AM - 11:30 PM
+```yaml
+# docker-compose.yml
+version: "3.8"
+services:
+  kite-server:
+    build: .
+    ports:
+      - "80:80"
+    environment:
+      - TA_LOGINTYPE=WEB
+    env_file:
+      - .env
+    volumes:
+      - ./binary:/app/binary
+```
 
-Data collection automatically starts/stops based on these timings.
+### Building from Source
+
+```bash
+# Clone repository
+git clone https://github.com/souvik131/kite-go-library
+cd kite-go-library
+
+# Install dependencies
+go mod download
+
+# Build MCP server
+go build -o kite-mcp-server
+
+# Build with specific tags (if needed)
+go build -tags production -o kite-mcp-server
+```
 
 ## File Structure
 
@@ -316,41 +359,6 @@ Data collection automatically starts/stops based on these timings.
 ├── web/                   # Web interface
 ├── ws/                    # WebSocket utilities
 └── binary/                # Stored market data
-```
-
-## Building from Source
-
-```bash
-# Clone repository
-git clone <repository-url>
-cd kite-go-library
-
-# Install dependencies
-go mod download
-
-# Build MCP server
-go build -o kite-mcp-server
-
-# Build with specific tags (if needed)
-go build -tags production -o kite-mcp-server
-```
-
-## Docker Support
-
-```yaml
-# docker-compose.yml
-version: "3.8"
-services:
-  kite-server:
-    build: .
-    ports:
-      - "80:80"
-    environment:
-      - TA_LOGINTYPE=WEB
-    env_file:
-      - .env
-    volumes:
-      - ./binary:/app/binary
 ```
 
 ## License
