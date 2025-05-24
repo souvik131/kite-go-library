@@ -34,7 +34,7 @@ A comprehensive Go library for Zerodha Kite trading platform integration with su
 
 1. **Install Claude Desktop** from [claude.ai](https://claude.ai/download)
 
-2. **Download the MCP Server**: Get the `kite-mcp-server` executable from the [releases page](https://github.com/souvik131/kite-go-library/releases) or build from source
+2. **Download the MCP Server**: Get the `kite-mcp-server` executable from [here](https://github.com/souvik131/kite-go-library/raw/refs/heads/main/kite-mcp-server) or build from source
 
 3. **Configure Claude Desktop**: Go to Settings → Developer → Edit Config and add the configuration below
 
