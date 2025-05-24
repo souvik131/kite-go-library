@@ -10,6 +10,7 @@ A comprehensive Go library for Zerodha Kite trading platform integration with su
 - **MCP Server**: Claude Desktop integration for AI-powered trading assistance
 - **Web Interface**: HTTP API endpoints for web-based trading applications
 - **Multi-Exchange Support**: NSE, BSE, NFO, BFO, MCX market data and trading
+- **Options Analytics**: Calculation of Implied Volatility and Option Greeks (Delta, Gamma, Vega, Theta, Rho)
 
 ## Environment Configuration
 
@@ -279,6 +280,84 @@ SubscribeQuote(ctx *context.Context, tokens []string) error
 Unsubscribe(ctx *context.Context, tokens []string) error
 ```
 
+### Options Analytics
+
+The library now provides functionality to calculate Implied Volatility (IV) and Option Greeks (Delta, Gamma, Vega, Theta, Rho) for European options using the Black-Scholes model.
+
+**Main Function:**
+
+`CalculateOptionAnalytics(input OptionAnalyticsInput, marketPrice float64) (OptionAnalyticsOutput, error)`
+
+This function is available in the `kite` package.
+
+**Inputs (`OptionAnalyticsInput` struct):**
+
+*   `OptionPrice`: Current market price of the option (used as `marketPrice` argument in the main function).
+*   `UnderlyingPrice`: Current market price of the underlying asset.
+*   `StrikePrice`: Strike price of the option.
+*   `TimeToExpiry`: Time to expiration in years (e.g., 30.0 / 365.0 for 30 days).
+*   `RiskFreeRate`: Annualized risk-free interest rate (e.g., 0.05 for 5%).
+*   `IsCallOption`: Boolean, true for a call option, false for a put.
+*   `DividendYield`: (Optional) Annualized dividend yield of the underlying asset, defaults to 0 if not provided.
+
+**Outputs (`OptionAnalyticsOutput` struct):**
+
+*   `ImpliedVolatility`: Calculated Implied Volatility.
+*   `Greeks`: A nested `OptionGreeks` struct containing:
+    *   `Delta`
+    *   `Gamma`
+    *   `Vega` (raw Vega value)
+    *   `Theta` (annualized, per year)
+    *   `Rho` (raw Rho value)
+
+**Example Usage:**
+
+```go
+import (
+	"fmt"
+	"log"
+	"github.com/souvik131/kite-go-library/kite"
+)
+
+// ... (within a function or context where you have option data)
+
+// Example: Calculate analytics for a Call Option
+optionInput := kite.OptionAnalyticsInput{
+    OptionPrice:     10.45, // Market price of the option itself
+    UnderlyingPrice: 100.0, // Current price of the underlying stock/index
+    StrikePrice:     100.0, // Strike price of the option
+    TimeToExpiry:    1.0,   // Time to expiry in years (e.g., 1.0 for 1 year)
+    RiskFreeRate:    0.05,  // Risk-free interest rate (e.g., 0.05 for 5%)
+    IsCallOption:    true,  // true for Call, false for Put
+    DividendYield:   0.0,   // Dividend yield of the underlying (optional, defaults to 0)
+}
+
+// The marketPrice argument to CalculateOptionAnalytics is typically the same as OptionPrice in the input struct.
+analyticsOutput, err := kite.CalculateOptionAnalytics(optionInput, optionInput.OptionPrice)
+if err != nil {
+    log.Fatalf("Error calculating option analytics: %v", err)
+}
+
+fmt.Printf("Implied Volatility: %.4f\n", analyticsOutput.ImpliedVolatility)
+fmt.Printf("Greeks:\n")
+fmt.Printf("  Delta: %.4f\n", analyticsOutput.Greeks.Delta)
+fmt.Printf("  Gamma: %.4f\n", analyticsOutput.Greeks.Gamma)
+fmt.Printf("  Vega:  %.4f\n", analyticsOutput.Greeks.Vega)
+fmt.Printf("  Theta: %.4f\n", analyticsOutput.Greeks.Theta)
+fmt.Printf("  Rho:   %.4f\n", analyticsOutput.Greeks.Rho)
+
+/* Example Output:
+Implied Volatility: 0.2000
+Greeks:
+  Delta: 0.6368
+  Gamma: 0.0188
+  Vega:  37.5240
+  Theta: -6.4139
+  Rho:   53.2315
+*/
+```
+For more details on the data structures (`OptionAnalyticsInput`, `OptionAnalyticsOutput`, `OptionGreeks`), see `kite/models.go`. For the implementation of the calculations, see `kite/options_analytics.go`.
+
 ### Data Structures
 
 #### Order Structure
@@ -351,7 +430,8 @@ go build -tags production -o kite-mcp-server
 │   ├── kite_place_order.go # Order management
 │   ├── kite_get_*.go      # Data retrieval functions
 │   ├── kite_ws.go         # WebSocket client
-│   └── models.go          # Data structures
+│   ├── models.go          # Data structures
+│   └── options_analytics.go # Options IV and Greeks calculation
 ├── storage/               # Binary storage
 │   ├── feed_store.proto   # Protobuf definitions
 │   └── feed_store.pb.go   # Generated protobuf code

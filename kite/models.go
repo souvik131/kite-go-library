@@ -328,3 +328,29 @@ type OrderFillConfig struct {
 	TotalAttempts   int
 	TickSize        float64
 }
+
+// OptionAnalyticsInput contains the necessary inputs for calculating Greeks and IV.
+type OptionAnalyticsInput struct {
+	OptionPrice     float64 // Current market price of the option
+	UnderlyingPrice float64 // Current market price of the underlying asset
+	StrikePrice     float64 // Strike price of the option
+	TimeToExpiry    float64 // Time to expiration in years (e.g., 30.0 / 365.0 for 30 days)
+	RiskFreeRate    float64 // Annualized risk-free interest rate (e.g., 0.05 for 5%)
+	IsCallOption    bool    // True if the option is a call, false if it's a put
+	DividendYield   float64 // Annualized dividend yield of the underlying (e.g., 0.02 for 2%), defaults to 0 if not provided
+}
+
+// OptionGreeks holds the calculated values for the option Greeks.
+type OptionGreeks struct {
+	Delta float64 `json:"delta"`
+	Gamma float64 `json:"gamma"`
+	Vega  float64 `json:"vega"`
+	Theta float64 `json:"theta"`
+	Rho   float64 `json:"rho"`
+}
+
+// OptionAnalyticsOutput holds the results of options analytics calculations.
+type OptionAnalyticsOutput struct {
+	ImpliedVolatility float64      `json:"implied_volatility"`
+	Greeks            OptionGreeks `json:"greeks"`
+}
