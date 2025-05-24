@@ -19,7 +19,6 @@ type Holding struct {
 	UsedQuantity       int64   `json:"used_quantity"`
 	T1Quantity         int64   `json:"t1_quantity"`
 	RealisedQuantity   float64 `json:"realised_quantity"`
-	Authorisation      string  `json:"authorisation"`
 	OpeningQuantity    int64   `json:"opening_quantity"`
 	ShortQuantity      int64   `json:"short_quantity"`
 	CollateralQuantity int64   `json:"collateral_quantity"`
