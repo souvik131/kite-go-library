@@ -28,13 +28,91 @@ A comprehensive Go library for Zerodha Kite trading platform integration with su
 | `TA_FEED_TIMEOUT`          | Data rotation interval (seconds) | 2       | Yes      |
 | `TA_FEED_INSTRUMENT_COUNT` | Instruments per batch            | 3000    | Yes      |
 
-## MCP Server Setup and Integration
+## Quick Start for Non-Coders
+
+If you're not familiar with coding but want to use this tool with Claude Desktop, follow these simple steps:
+
+### Step 1: Download the Right File
+
+1. Go to the [build folder](https://github.com/souvik131/kite-go-library/tree/main/build) on GitHub
+2. Download the file for your computer:
+   - **Windows users**: Download `win.exe`
+   - **Mac users**: Download `mac`
+   - **Linux users**: Download `linux`
+3. Save it to a folder you can remember (like your Desktop or Documents folder)
+
+### Step 2: Get Claude Desktop
+
+1. Download and install Claude Desktop from [claude.ai/download](https://claude.ai/download)
+2. Create an account if you don't have one
+
+### Step 3: Set Up Your Trading Credentials
+
+You'll need your Zerodha Kite login details:
+
+- Your Kite username
+- Your Kite password
+- Your TOTP secret key (this is different from the 6-digit OTP - you get this when setting up 2FA)
+
+### Step 4: Configure Claude Desktop
+
+1. Open Claude Desktop
+2. Go to Settings → Developer → Edit Config
+3. Copy and paste the configuration below, but replace the parts in `< >` with your actual information:
+
+```json
+{
+  "mcpServers": {
+    "kite-server": {
+      "command": "/path/to/your/downloaded/file",
+      "args": [],
+      "env": {
+        "TA_ID": "your_kite_username",
+        "TA_PASSWORD": "your_kite_password",
+        "TA_TOTP": "your_totp_secret_key",
+        "TA_LOGINTYPE": "WEB",
+        "TA_PATH": "http://127.0.0.1:80/kite",
+        "TA_PORT": "80",
+        "TA_FEED_TIMEOUT": "2",
+        "TA_FEED_INSTRUMENT_COUNT": "3000"
+      }
+    }
+  }
+}
+```
+
+**Important**: Replace `/path/to/your/downloaded/file` with the actual location where you saved the file. For example:
+
+- Windows: `"C:\\Users\\YourName\\Desktop\\win.exe"`
+- Mac: `"/Users/YourName/Desktop/mac"`
+- Linux: `"/home/yourusername/Desktop/linux"`
+
+### Step 5: Start Using
+
+1. Save the configuration and restart Claude Desktop
+2. Look for a 🔌 icon in Claude - this means it's connected
+3. You can now ask Claude things like:
+   - "Show me my current stock positions"
+   - "What's the current price of Reliance?"
+   - "Place a buy order for 10 shares of TCS"
+
+That's it! You're ready to trade using natural language with Claude.
+
+---
+
+## MCP Server Setup and Integration (Technical Details)
 
 ### Running the MCP Server
 
 1. **Install Claude Desktop** from [claude.ai](https://claude.ai/download)
 
-2. **Download the MCP Server**: Get the `kite-mcp-server` executable from [here](https://github.com/souvik131/kite-go-library/raw/refs/heads/main/kite-mcp-server) or build from source
+2. **Download the MCP Server**: Download the appropriate executable for your operating system from the build folder:
+
+   - **Linux**: [linux](https://github.com/souvik131/kite-go-library/raw/refs/heads/main/build/linux)
+   - **macOS**: [mac](https://github.com/souvik131/kite-go-library/raw/refs/heads/main/build/mac)
+   - **Windows**: [win.exe](https://github.com/souvik131/kite-go-library/raw/refs/heads/main/build/win.exe)
+
+   Alternatively, you can build from source using the instructions below.
 
 3. **Configure Claude Desktop**: Go to Settings → Developer → Edit Config and add the configuration below
 
@@ -46,7 +124,7 @@ Add to your `claude_desktop_config.json`:
 {
   "mcpServers": {
     "kite-server": {
-      "command": "<your_folder_location>/kite-mcp-server",
+      "command": "<path_to_executable>",
       "args": [],
       "env": {
         "TA_ID": "<your_user_id>",
@@ -333,12 +411,30 @@ cd kite-go-library
 # Install dependencies
 go mod download
 
-# Build MCP server
+# Build for your current platform
 go build -o kite-mcp-server
+
+# Or build for specific platforms
+# Linux
+GOOS=linux GOARCH=amd64 go build -o build/linux
+# macOS
+GOOS=darwin GOARCH=amd64 go build -o build/mac
+# Windows
+GOOS=windows GOARCH=amd64 go build -o build/win.exe
 
 # Build with specific tags (if needed)
 go build -tags production -o kite-mcp-server
 ```
+
+### Pre-built Executables
+
+Pre-built executables for all major operating systems are available in the `build/` folder:
+
+- **Linux (64-bit)**: `build/linux`
+- **macOS (64-bit)**: `build/mac`
+- **Windows (64-bit)**: `build/win.exe`
+
+Simply download the appropriate executable for your operating system and use it directly without needing to build from source.
 
 ## File Structure
 
